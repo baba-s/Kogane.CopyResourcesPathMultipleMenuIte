@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +24,7 @@ namespace Kogane.Internal
             if ( assetGUIDs.Length == 1 )
             {
                 var assetPath     = AssetDatabase.GUIDToAssetPath( assetGUIDs[ 0 ] );
-                var resourcesPath = GetResourcesPath( assetPath );
+                var resourcesPath = ResourcesPath.Get( assetPath );
                 EditorGUIUtility.systemCopyBuffer = resourcesPath;
                 Debug.Log( $"Copied! `{resourcesPath}`" );
             }
@@ -34,23 +32,14 @@ namespace Kogane.Internal
             {
                 var assetPaths = assetGUIDs
                         .Select( x => AssetDatabase.GUIDToAssetPath( x ) )
-                        .Select( x => GetResourcesPath( x ) )
-                        .OrderBy( x => x )
+                        .Select( x => ResourcesPath.Get( x ) )
+                        .OrderBy( x => x, new NaturalComparer() )
                     ;
 
                 var result = string.Join( "\n", assetPaths );
                 EditorGUIUtility.systemCopyBuffer = result;
                 Debug.Log( $"Copied!\n```\n{result}\n```" );
             }
-        }
-
-        private static string GetResourcesPath( string path )
-        {
-            path = Regex.Replace( path, @"^.*Resources/", "" );                                   // Resourcesフォルダまでのパスを削除します
-            path = $"{Path.GetDirectoryName( path )}/{Path.GetFileNameWithoutExtension( path )}"; // 拡張子を削除します
-            path = path.StartsWith( @"/" ) ? path.Remove( 0, 1 ) : path;
-            path = path.Replace( "\\", "/" );
-            return path;
         }
     }
 }
